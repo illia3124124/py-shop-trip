@@ -10,7 +10,7 @@ from app.customer import Customer
 def shop_trip() -> None:
     customers = []
     shops = []
-    with open("config.json", "r", encoding="utf-8") as f:
+    with open("app/config.json", "r", encoding="utf-8") as f:
         config = json.load(f)
 
     fuel_price = config["FUEL_PRICE"]
@@ -81,8 +81,8 @@ def shop_trip() -> None:
             price = chosen_shop.products[product]
             amount = customer.product_cart[product]
             total = price * amount
-            print(f"{customer.product_cart[product]} {product}s "
-                  f"for{total: g} dollars")
+            print(f"{customer.product_cart[product]} {product}s for"
+                  f"{total: g} dollars")
         print(f"Total cost is {product_costs[shops.index(chosen_shop)]}"
               f" dollars")
         print("See you again!")
