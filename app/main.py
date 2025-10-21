@@ -79,8 +79,8 @@ def shop_trip() -> None:
         print("You have bought:")
         for product in customer.product_cart:
             print(f"{customer.product_cart[product]} {product}s for"
-                  f"{chosen_shop.products[product]
-                     * customer.product_cart[product]: g} dollars")
+                  f"{(chosen_shop.products[product]
+                     * customer.product_cart[product]): g} dollars")
         print(f"Total cost is {product_costs[shops.index(chosen_shop)]}"
               f" dollars")
         print("See you again!")
