@@ -1,7 +1,6 @@
 import datetime
 import json
 import math
-import os.path
 
 from app.car import Car
 from app.shop import Shop
@@ -60,30 +59,35 @@ def shop_trip() -> None:
             if product_costs[idx] + fuel_costs[idx] < total_cost:
                 total_cost = product_costs[idx] + fuel_costs[idx]
                 chosen_shop = shops[idx]
-            print(f"{customer.name}'s trip to the {shops[idx].name} costs {(product_costs[idx] + fuel_costs[idx]):.2f}")
+            print(f"{customer.name}'s trip to the {shops[idx].name} "
+                  f"costs{(product_costs[idx] + fuel_costs[idx]): .2f}")
 
         if customer.money < total_cost:
-            print(f"{customer.name} doesn't have enough money to make a purchase in any shop")
+            print(f"{customer.name} doesn't have enough money"
+                  f" to make a purchase in any shop")
             if customers.index(customer) + 1 != len(customers):
                 print()
             continue
 
         print(f"{customer.name} rides to {chosen_shop.name}")
+        home_location = customer.location
         customer.location = chosen_shop.location
         print()
 
-        print(f"Date: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+        print(f"Date: {datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")}")
         print(f"Thanks, {customer.name}, for your purchase!")
         print("You have bought:")
         for product in customer.product_cart:
-            print(
-                f"{customer.product_cart[product]} {product}s for {chosen_shop.products[product] * customer.product_cart[product]:g} dollars")
-        print(f"Total cost is {product_costs[shops.index(chosen_shop)]} dollars")
+            print(f"{customer.product_cart[product]} {product}s for"
+                  f"{chosen_shop.products[product]
+                     * customer.product_cart[product]: g} dollars")
+        print(f"Total cost is {product_costs[shops.index(chosen_shop)]}"
+              f" dollars")
         print("See you again!")
         print()
-
+        customer.location = home_location
         print(f"{customer.name} rides home")
         customer.money -= total_cost
-        print(f"{customer.name} now has {customer.money:.2f} dollars")
+        print(f"{customer.name} now has{customer.money: .2f} dollars")
         if customers.index(customer) + 1 != len(customers):
             print()
