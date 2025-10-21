@@ -1,6 +1,7 @@
 import datetime
 import json
 import math
+import os.path
 
 from app.car import Car
 from app.shop import Shop
@@ -10,7 +11,7 @@ from app.customer import Customer
 def shop_trip() -> None:
     customers = []
     shops = []
-    with open("app/config.json", "r", encoding="utf-8") as f:
+    with open(os.path.join("app", "config.json"), "r", encoding="utf-8") as f:
         config = json.load(f)
 
     fuel_price = config["FUEL_PRICE"]
@@ -35,8 +36,7 @@ def shop_trip() -> None:
         ))
 
     for customer in customers:
-        product_costs = []
-        fuel_costs = []
+        trip_costs = []
         for shop in shops:
             dx = shop.location[0] - customer.location[0]
             dy = shop.location[1] - customer.location[1]
@@ -44,23 +44,27 @@ def shop_trip() -> None:
 
             fuel_needed = (customer.car.fuel_consumption / 100) * distance
             fuel_cost = fuel_needed * fuel_price
-            fuel_costs.append(fuel_cost)
 
-            total_products = sum(
-                shop.products[product] * customer.product_cart[product]
-                for product in customer.product_cart
-            )
-            product_costs.append(total_products)
+            total_products = 0
+            for product in customer.product_cart:
+                if shop.products.get(product, None) is None:
+                    total_products = -1
+                    break
+                total_products += (shop.products[product]
+                                   * customer.product_cart[product])
+            if total_products == -1:
+                continue
+            trip_costs.append([total_products, fuel_cost, shop])
 
         print(f"{customer.name} has {customer.money} dollars")
-        total_cost = product_costs[0] + fuel_costs[0]
-        chosen_shop = shops[0]
-        for idx in range(len(shops)):
-            if product_costs[idx] + fuel_costs[idx] < total_cost:
-                total_cost = product_costs[idx] + fuel_costs[idx]
-                chosen_shop = shops[idx]
-            print(f"{customer.name}'s trip to the {shops[idx].name} "
-                  f"costs{(product_costs[idx] + fuel_costs[idx]): .2f}")
+        total_cost = trip_costs[0][0] + trip_costs[0][1]
+        chosen_shop = trip_costs[0]
+        for trip_shop_cost in trip_costs:
+            if trip_shop_cost[0] + trip_shop_cost[1] < total_cost:
+                total_cost = trip_shop_cost[0] + trip_shop_cost[1]
+                chosen_shop = trip_shop_cost
+            print(f"{customer.name}'s trip to the {trip_shop_cost[2].name} "
+                  f"costs{(trip_shop_cost[0] + trip_shop_cost[1]): .2f}")
 
         if customer.money < total_cost:
             print(f"{customer.name} doesn't have enough money"
@@ -69,21 +73,21 @@ def shop_trip() -> None:
                 print()
             continue
 
-        print(f"{customer.name} rides to {chosen_shop.name}")
-        home_location = customer.location
-        customer.location = chosen_shop.location
+        print(f"{customer.name} rides to {chosen_shop[2].name}")
+        home_location = customer.location.copy()
+        customer.location = chosen_shop[2].location.copy()
         print()
         date_now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         print(f"Date: {date_now}")
         print(f"Thanks, {customer.name}, for your purchase!")
         print("You have bought:")
         for product in customer.product_cart:
-            price = chosen_shop.products[product]
+            price = chosen_shop[2].products[product]
             amount = customer.product_cart[product]
             total = price * amount
             print(f"{customer.product_cart[product]} {product}s for"
                   f"{total: g} dollars")
-        print(f"Total cost is {product_costs[shops.index(chosen_shop)]}"
+        print(f"Total cost is {chosen_shop[0]}"
               f" dollars")
         print("See you again!")
         print()
